@@ -1,1 +1,1 @@
-# nothing to import yet
+from .input_pipe import InputPipe
