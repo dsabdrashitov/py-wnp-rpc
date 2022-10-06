@@ -32,7 +32,20 @@ CLASS_FUNCTION = 7
 
 def decompose_type(obj_type: int) -> Tuple[int, int]:
     if not((0 <= obj_type) and (obj_type <= TYPE_MAX)):
+        _logger.error("obj_type is out of bounds")
         raise ProtocolException()
     obj_class = obj_type >> MASK_BITS
     obj_mask = obj_type & MASK_MAX
     return obj_class, obj_mask
+
+
+def mask_bytes_size(obj_mask: int) -> int:
+    if not((0 <= obj_mask) and (obj_mask <= MASK_MAX)):
+        _logger.error("obj_mask is out of bounds")
+        raise ProtocolException()
+    return 1 << obj_mask
+
+
+def deserialize_int(bytes_arr: bytes) -> int:
+    result = int.from_bytes(bytes_arr, 'little', signed=True)
+    return result

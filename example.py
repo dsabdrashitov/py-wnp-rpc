@@ -10,6 +10,13 @@ def main():
     input_pipe = InputPipe(io)
 
     _logger.info(f"input.read() returned {input_pipe.read()}")
+    _logger.info(f"input.read() returned {input_pipe.read()}")
+    _logger.info(f"input.read() returned {input_pipe.read()}")
+    _logger.info(f"input.read() returned {input_pipe.read()}")
+    _logger.info(f"input.read() returned {input_pipe.read()}")
+    _logger.info(f"input.read() returned {input_pipe.read()}")
+    _logger.info(f"input.read() returned {input_pipe.read()}")
+    _logger.info(f"input.read() returned {input_pipe.read()}")
 
     io.close()
 
