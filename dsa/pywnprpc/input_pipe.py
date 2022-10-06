@@ -1,9 +1,10 @@
 import logging
-from typing import List, Dict
+from typing import List, Dict, Callable
 from .pipe_exception import PipeException
 from .protocol_exception import ProtocolException
 from .types import decompose_type, mask_bytes_size, deserialize_int, deserialize_float
 from .types import CLASS_VOID, CLASS_BOOLEAN, CLASS_INT, CLASS_FLOAT, CLASS_STRING, CLASS_TABLE, CLASS_LINK
+from .types import CLASS_FUNCTION
 from .types import MASK_VOID, MASK_BOOL_TRUE, MASK_BOOL_FALSE
 
 _logger = logging.getLogger(__name__)
@@ -22,11 +23,15 @@ class InputPipe:
             CLASS_STRING: self._read_string,
             CLASS_TABLE: self._read_table,
             CLASS_LINK: self._read_link,
+            CLASS_FUNCTION: self._read_function,
         }
         self.strings_encoding = "cp1252"  # default windows encoding, since library is for windows named pipes
 
     def set_strings_encoding(self, encoding: str):
         self.strings_encoding = encoding
+
+    def set_remote_functions(self, remote_functions):
+        self.remote_functions = remote_functions
 
     def read(self):
         try:
@@ -104,4 +109,12 @@ class InputPipe:
     def _read_link(self, mask: int, stored_objects: List[Dict]) -> Dict:
         link_id = self._read_int(mask, None)
         result = stored_objects[link_id]
+        return result
+
+    def _read_function(self, mask: int, _) -> Callable:
+        if self.remote_functions is None:
+            _logger.error("receiving of remote functions not allowed")
+            raise ProtocolException()
+        func_id = self._read_int(mask, None)
+        result = self.remote_functions.get_function(func_id)
         return result
