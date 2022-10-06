@@ -3,7 +3,7 @@ from typing import List, Dict
 from .pipe_exception import PipeException
 from .protocol_exception import ProtocolException
 from .types import decompose_type, mask_bytes_size, deserialize_int, deserialize_float
-from .types import CLASS_VOID, CLASS_BOOLEAN, CLASS_INT, CLASS_FLOAT, CLASS_STRING, CLASS_TABLE
+from .types import CLASS_VOID, CLASS_BOOLEAN, CLASS_INT, CLASS_FLOAT, CLASS_STRING, CLASS_TABLE, CLASS_LINK
 from .types import MASK_VOID, MASK_BOOL_TRUE, MASK_BOOL_FALSE
 
 _logger = logging.getLogger(__name__)
@@ -21,6 +21,7 @@ class InputPipe:
             CLASS_FLOAT: self._read_float,
             CLASS_STRING: self._read_string,
             CLASS_TABLE: self._read_table,
+            CLASS_LINK: self._read_link,
         }
         self.strings_encoding = "cp1252"  # default windows encoding, since library is for windows named pipes
 
@@ -35,7 +36,7 @@ class InputPipe:
             _logger.error(e)
             raise PipeException()
 
-    def _read(self, stored_objects: List):
+    def _read(self, stored_objects: List[Dict]):
         obj_type = self._read_raw(1)[0]
         obj_class, obj_mask = decompose_type(obj_type)
         if obj_class not in self.class_switch:
@@ -89,7 +90,7 @@ class InputPipe:
         result = bytes_arr.decode(self.strings_encoding)
         return result
 
-    def _read_table(self, mask: int, stored_objects: List) -> Dict:
+    def _read_table(self, mask: int, stored_objects: List[Dict]) -> Dict:
         size = self._read_int(mask, None)
         _logger.debug(f"reading dict with {size} items")
         result = dict()
@@ -98,4 +99,9 @@ class InputPipe:
             key = self._read(stored_objects)
             val = self._read(stored_objects)
             result[key] = val
+        return result
+
+    def _read_link(self, mask: int, stored_objects: List[Dict]) -> Dict:
+        link_id = self._read_int(mask, None)
+        result = stored_objects[link_id]
         return result

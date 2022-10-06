@@ -12,6 +12,8 @@ def main():
     while True:
         obj = input_pipe.read()
         _logger.info(f"input.read() returned {obj}")
+        if isinstance(obj, dict) and ("self" in obj):
+            _logger.debug(f"dict has recursion: dict['self']={obj['self']}")
         if obj is None:
             break
 
