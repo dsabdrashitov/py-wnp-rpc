@@ -1,10 +1,9 @@
 import logging
-import sys
-from typing import List
+from typing import List, Dict
 from .pipe_exception import PipeException
 from .protocol_exception import ProtocolException
 from .types import decompose_type, mask_bytes_size, deserialize_int, deserialize_float
-from .types import CLASS_VOID, CLASS_BOOLEAN, CLASS_INT, CLASS_FLOAT, CLASS_STRING
+from .types import CLASS_VOID, CLASS_BOOLEAN, CLASS_INT, CLASS_FLOAT, CLASS_STRING, CLASS_TABLE
 from .types import MASK_VOID, MASK_BOOL_TRUE, MASK_BOOL_FALSE
 
 _logger = logging.getLogger(__name__)
@@ -21,6 +20,7 @@ class InputPipe:
             CLASS_INT: self._read_int,
             CLASS_FLOAT: self._read_float,
             CLASS_STRING: self._read_string,
+            CLASS_TABLE: self._read_table,
         }
         self.strings_encoding = "cp1252"  # default windows encoding, since library is for windows named pipes
 
@@ -83,8 +83,19 @@ class InputPipe:
         return result
 
     def _read_string(self, mask: int, _) -> str:
-        length = self._read_int(mask, _)
+        length = self._read_int(mask, None)
         _logger.debug(f"length of string being read is {length}")
         bytes_arr = self._read_raw(length)
         result = bytes_arr.decode(self.strings_encoding)
+        return result
+
+    def _read_table(self, mask: int, stored_objects: List) -> Dict:
+        size = self._read_int(mask, None)
+        _logger.debug(f"reading dict with {size} items")
+        result = dict()
+        stored_objects.append(result)
+        for _ in range(size):
+            key = self._read(stored_objects)
+            val = self._read(stored_objects)
+            result[key] = val
         return result
