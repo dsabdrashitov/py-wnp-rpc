@@ -1,4 +1,5 @@
 from .protocol_exception import ProtocolException
+import struct
 from typing import Tuple
 import logging
 
@@ -49,3 +50,12 @@ def mask_bytes_size(obj_mask: int) -> int:
 def deserialize_int(bytes_arr: bytes) -> int:
     result = int.from_bytes(bytes_arr, 'little', signed=True)
     return result
+
+
+def deserialize_float(bytes_arr: bytes, mask: int) -> float:
+    if mask == MASK_FLOAT64:
+        return struct.unpack("<d", bytes_arr)[0]
+    elif mask == MASK_FLOAT32:
+        return struct.unpack("<f", bytes_arr)[0]
+    _logger.error(f"unknown float mask: {mask}")
+    raise ProtocolException()

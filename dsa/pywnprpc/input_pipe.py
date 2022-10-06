@@ -2,8 +2,8 @@ import logging
 from typing import List
 from .pipe_exception import PipeException
 from .protocol_exception import ProtocolException
-from .types import decompose_type, mask_bytes_size, deserialize_int
-from .types import CLASS_VOID, CLASS_INT, CLASS_BOOLEAN
+from .types import decompose_type, mask_bytes_size, deserialize_int, deserialize_float
+from .types import CLASS_VOID, CLASS_BOOLEAN, CLASS_INT, CLASS_FLOAT
 from .types import MASK_VOID, MASK_BOOL_TRUE, MASK_BOOL_FALSE
 
 _logger = logging.getLogger(__name__)
@@ -16,8 +16,9 @@ class InputPipe:
         self.remote_functions = None
         self.class_switch = {
             CLASS_VOID: self._read_void,
-            CLASS_INT: self._read_int,
             CLASS_BOOLEAN: self._read_boolean,
+            CLASS_INT: self._read_int,
+            CLASS_FLOAT: self._read_float,
         }
 
     def read(self):
@@ -63,7 +64,14 @@ class InputPipe:
 
     def _read_int(self, mask: int, _) -> int:
         bytes_size = mask_bytes_size(mask)
-        _logger.debug(f"reading {bytes_size} bytes int")
+        _logger.debug(f"reading {bytes_size} bytes of int")
         bytes_arr = self._read_raw(bytes_size)
         result = deserialize_int(bytes_arr)
+        return result
+
+    def _read_float(self, mask: int, _) -> float:
+        bytes_size = mask_bytes_size(mask)
+        _logger.debug(f"reading {bytes_size} bytes of float")
+        bytes_arr = self._read_raw(bytes_size)
+        result = deserialize_float(bytes_arr, mask)
         return result
