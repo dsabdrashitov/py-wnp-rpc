@@ -1,9 +1,10 @@
 import logging
+import sys
 from typing import List
 from .pipe_exception import PipeException
 from .protocol_exception import ProtocolException
 from .types import decompose_type, mask_bytes_size, deserialize_int, deserialize_float
-from .types import CLASS_VOID, CLASS_BOOLEAN, CLASS_INT, CLASS_FLOAT
+from .types import CLASS_VOID, CLASS_BOOLEAN, CLASS_INT, CLASS_FLOAT, CLASS_STRING
 from .types import MASK_VOID, MASK_BOOL_TRUE, MASK_BOOL_FALSE
 
 _logger = logging.getLogger(__name__)
@@ -19,7 +20,12 @@ class InputPipe:
             CLASS_BOOLEAN: self._read_boolean,
             CLASS_INT: self._read_int,
             CLASS_FLOAT: self._read_float,
+            CLASS_STRING: self._read_string,
         }
+        self.strings_encoding = "cp1252"  # default windows encoding, since library is for windows named pipes
+
+    def set_strings_encoding(self, encoding: str):
+        self.strings_encoding = encoding
 
     def read(self):
         try:
@@ -74,4 +80,11 @@ class InputPipe:
         _logger.debug(f"reading {bytes_size} bytes of float")
         bytes_arr = self._read_raw(bytes_size)
         result = deserialize_float(bytes_arr, mask)
+        return result
+
+    def _read_string(self, mask: int, _) -> str:
+        length = self._read_int(mask, _)
+        _logger.debug(f"length of string being read is {length}")
+        bytes_arr = self._read_raw(length)
+        result = bytes_arr.decode(self.strings_encoding)
         return result
