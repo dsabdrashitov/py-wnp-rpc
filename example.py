@@ -9,14 +9,11 @@ def main():
     io = open(pipe_name, "r+b")
     input_pipe = InputPipe(io)
 
-    _logger.info(f"input.read() returned {input_pipe.read()}")
-    _logger.info(f"input.read() returned {input_pipe.read()}")
-    _logger.info(f"input.read() returned {input_pipe.read()}")
-    _logger.info(f"input.read() returned {input_pipe.read()}")
-    _logger.info(f"input.read() returned {input_pipe.read()}")
-    _logger.info(f"input.read() returned {input_pipe.read()}")
-    _logger.info(f"input.read() returned {input_pipe.read()}")
-    _logger.info(f"input.read() returned {input_pipe.read()}")
+    while True:
+        obj = input_pipe.read()
+        _logger.info(f"input.read() returned {obj}")
+        if obj is None:
+            break
 
     io.close()
 

@@ -3,7 +3,8 @@ from typing import List
 from .pipe_exception import PipeException
 from .protocol_exception import ProtocolException
 from .types import decompose_type, mask_bytes_size, deserialize_int
-from .types import CLASS_INT
+from .types import CLASS_VOID, CLASS_INT
+from .types import MASK_VOID
 
 _logger = logging.getLogger(__name__)
 
@@ -14,6 +15,7 @@ class InputPipe:
         self.input_stream = input_stream
         self.remote_functions = None
         self.class_switch = {
+            CLASS_VOID: self._read_void,
             CLASS_INT: self._read_int,
         }
 
@@ -32,7 +34,6 @@ class InputPipe:
             _logger.error(f"unknown class {obj_class}")
             raise ProtocolException()
         read_method = self.class_switch[obj_class]
-        # TODO: why is there Unexpected Argument warning for stored_objects?
         result = read_method(obj_mask, stored_objects)
         return result
 
@@ -42,6 +43,13 @@ class InputPipe:
             _logger.error("not enough bytes in stream")
             raise ProtocolException()
         return result
+
+    @staticmethod
+    def _read_void(mask: int, _) -> None:
+        if mask != MASK_VOID:
+            _logger.error(f"void has wrong mask: {mask}")
+            raise ProtocolException()
+        return None
 
     def _read_int(self, mask: int, _) -> int:
         bytes_size = mask_bytes_size(mask)
