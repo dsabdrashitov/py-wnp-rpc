@@ -3,8 +3,8 @@ from typing import List
 from .pipe_exception import PipeException
 from .protocol_exception import ProtocolException
 from .types import decompose_type, mask_bytes_size, deserialize_int
-from .types import CLASS_VOID, CLASS_INT
-from .types import MASK_VOID
+from .types import CLASS_VOID, CLASS_INT, CLASS_BOOLEAN
+from .types import MASK_VOID, MASK_BOOL_TRUE, MASK_BOOL_FALSE
 
 _logger = logging.getLogger(__name__)
 
@@ -17,6 +17,7 @@ class InputPipe:
         self.class_switch = {
             CLASS_VOID: self._read_void,
             CLASS_INT: self._read_int,
+            CLASS_BOOLEAN: self._read_boolean,
         }
 
     def read(self):
@@ -50,6 +51,15 @@ class InputPipe:
             _logger.error(f"void has wrong mask: {mask}")
             raise ProtocolException()
         return None
+
+    @staticmethod
+    def _read_boolean(mask: int, _) -> bool:
+        if mask == MASK_BOOL_TRUE:
+            return True
+        elif mask == MASK_BOOL_FALSE:
+            return False
+        _logger.error(f"unknown boolean mask: {mask}")
+        raise ProtocolException()
 
     def _read_int(self, mask: int, _) -> int:
         bytes_size = mask_bytes_size(mask)
