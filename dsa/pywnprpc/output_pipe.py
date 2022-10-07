@@ -2,7 +2,7 @@ import logging
 from typing import Iterable, BinaryIO, Any, Dict
 from .pipe_exception import PipeException
 from .types import compose_type, int_mask, serialize_int, serialize_float
-from .types import CLASS_VOID, CLASS_BOOLEAN, CLASS_INT, CLASS_FLOAT
+from .types import CLASS_VOID, CLASS_BOOLEAN, CLASS_INT, CLASS_FLOAT, CLASS_STRING
 from .types import MASK_VOID, MASK_BOOL_TRUE, MASK_BOOL_FALSE, MASK_FLOAT64
 
 _logger = logging.getLogger(__name__)
@@ -19,7 +19,11 @@ class OutputPipe:
             bool: self._write_boolean,
             int: self._write_int,
             float: self._write_float,
+            str: self._write_string,
         }
+
+    def set_strings_encoding(self, encoding: str):
+        self.strings_encoding = encoding
 
     def write(self, obj: Any) -> None:
         try:
@@ -69,3 +73,12 @@ class OutputPipe:
         obj_type = compose_type(CLASS_FLOAT, MASK_FLOAT64)
         self._write_raw([obj_type, ])
         self._write_raw(serialize_float(obj, MASK_FLOAT64))
+
+    def _write_string(self, obj: str, _) -> None:
+        raw = obj.encode(self.strings_encoding)
+        length = len(raw)
+        obj_mask = int_mask(length)
+        obj_type = compose_type(CLASS_STRING, obj_mask)
+        self._write_raw([obj_type, ])
+        self._write_raw(serialize_int(length, obj_mask))
+        self._write_raw(raw)

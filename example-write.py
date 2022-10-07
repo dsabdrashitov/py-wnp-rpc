@@ -24,6 +24,9 @@ def main():
     output_pipe.write(1.0)
     output_pipe.write(-3.66)
 
+    # strings
+    output_pipe.write("Hell\no, Lua!")
+
     # None
     output_pipe.write(None)
 
