@@ -9,6 +9,11 @@ def main():
     io = open(pipe_name, "r+b")
     output_pipe = OutputPipe(io)
 
+    # booleans
+    output_pipe.write(True)
+    output_pipe.write(False)
+    
+    # None
     output_pipe.write(None)
 
     io.close()

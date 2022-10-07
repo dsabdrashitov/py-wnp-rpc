@@ -34,11 +34,11 @@ CLASS_FUNCTION = 7
 def compose_type(obj_class: int, obj_mask: int) -> int:
     if not((0 <= obj_class) and (obj_class <= CLASS_MAX)):
         err = "obj_class is out of bounds"
-        _logger.fatal(err)
+        _logger.error(err)
         raise ValueError(err)
     if not((0 <= obj_mask) and (obj_mask <= MASK_MAX)):
         err = "obj_mask is out of bounds"
-        _logger.fatal(err)
+        _logger.error(err)
         raise ValueError(err)
     return (obj_class << MASK_BITS) | obj_mask
 
