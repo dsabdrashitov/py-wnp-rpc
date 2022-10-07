@@ -20,6 +20,10 @@ def main():
     output_pipe.write(-2147483648)
     output_pipe.write(2147483647 * 2147483648 + 2147483647)
 
+    # floats
+    output_pipe.write(1.0)
+    output_pipe.write(-3.66)
+
     # None
     output_pipe.write(None)
 

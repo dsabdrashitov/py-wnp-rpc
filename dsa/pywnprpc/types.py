@@ -79,6 +79,16 @@ def serialize_int(value: int, mask: int) -> bytes:
     return result
 
 
+def serialize_float(value: float, mask: int = MASK_FLOAT64) -> bytes:
+    if mask == MASK_FLOAT64:
+        return struct.pack("<d", value)
+    elif mask == MASK_FLOAT32:
+        return struct.pack("<f", value)
+    err = f"unknown float mask: {mask}"
+    _logger.error(err)
+    raise ValueError(err)
+
+
 def deserialize_int(bytes_arr: bytes) -> int:
     result = int.from_bytes(bytes_arr, "little", signed=True)
     return result

@@ -1,9 +1,9 @@
 import logging
 from typing import Iterable, BinaryIO, Any, Dict
 from .pipe_exception import PipeException
-from .types import compose_type, int_mask, serialize_int
-from .types import CLASS_VOID, CLASS_BOOLEAN, CLASS_INT
-from .types import MASK_VOID, MASK_BOOL_TRUE, MASK_BOOL_FALSE
+from .types import compose_type, int_mask, serialize_int, serialize_float
+from .types import CLASS_VOID, CLASS_BOOLEAN, CLASS_INT, CLASS_FLOAT
+from .types import MASK_VOID, MASK_BOOL_TRUE, MASK_BOOL_FALSE, MASK_FLOAT64
 
 _logger = logging.getLogger(__name__)
 
@@ -18,6 +18,7 @@ class OutputPipe:
             type(None): self._write_void,
             bool: self._write_boolean,
             int: self._write_int,
+            float: self._write_float,
         }
 
     def write(self, obj: Any) -> None:
@@ -63,3 +64,8 @@ class OutputPipe:
         obj_type = compose_type(CLASS_INT, obj_mask)
         self._write_raw([obj_type, ])
         self._write_raw(serialize_int(obj, obj_mask))
+
+    def _write_float(self, obj: float, _) -> None:
+        obj_type = compose_type(CLASS_FLOAT, MASK_FLOAT64)
+        self._write_raw([obj_type, ])
+        self._write_raw(serialize_float(obj, MASK_FLOAT64))
