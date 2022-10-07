@@ -1,8 +1,8 @@
 import logging
 from typing import Iterable, BinaryIO, Any, Dict
 from .pipe_exception import PipeException
-from .types import compose_type
-from .types import CLASS_VOID, CLASS_BOOLEAN
+from .types import compose_type, int_mask, serialize_int
+from .types import CLASS_VOID, CLASS_BOOLEAN, CLASS_INT
 from .types import MASK_VOID, MASK_BOOL_TRUE, MASK_BOOL_FALSE
 
 _logger = logging.getLogger(__name__)
@@ -17,6 +17,7 @@ class OutputPipe:
         self.class_switch = {
             type(None): self._write_void,
             bool: self._write_boolean,
+            int: self._write_int,
         }
 
     def write(self, obj: Any) -> None:
@@ -30,6 +31,7 @@ class OutputPipe:
             raise PipeException()
 
     def _write(self, obj: Any, stored_objects: Dict[Any, int]) -> None:
+        _logger.debug(f"writing {obj}")
         python_type = type(obj)
         if python_type not in self.class_switch:
             err = f"type {python_type} not supported"
@@ -40,7 +42,9 @@ class OutputPipe:
         write_method(obj, stored_objects)
 
     def _write_raw(self, sequence_of_bytes: Iterable[int]) -> None:
-        self.output_stream.write(bytes(sequence_of_bytes))
+        block = bytes(sequence_of_bytes)
+        _logger.debug(f"write block of {len(block)} bytes")
+        self.output_stream.write(block)
 
     def _write_void(self, _0, _1) -> None:
         obj_type = compose_type(CLASS_VOID, MASK_VOID)
@@ -53,3 +57,9 @@ class OutputPipe:
             obj_mask = MASK_BOOL_FALSE
         obj_type = compose_type(CLASS_BOOLEAN, obj_mask)
         self._write_raw([obj_type, ])
+
+    def _write_int(self, obj: int, _) -> None:
+        obj_mask = int_mask(obj)
+        obj_type = compose_type(CLASS_INT, obj_mask)
+        self._write_raw([obj_type, ])
+        self._write_raw(serialize_int(obj, obj_mask))
