@@ -8,14 +8,19 @@ def main():
     pipe_name = r"\\.\pipe\wnprpc_test"
     io = open(pipe_name, "r+b")
     input_pipe = InputPipe(io)
-    # TODO: change lambda to other stub
-    input_pipe.set_remote_functions(RemoteFunctions(lambda func_id, *args: None))
+
+    def make_call(func_id, args):
+        _logger.debug(f"Stub for remote function {func_id} was called with args={args}")
+        return True
+    input_pipe.set_remote_functions(RemoteFunctions(make_call))
 
     while True:
         obj = input_pipe.read()
         _logger.info(f"input.read() returned {obj}")
         if isinstance(obj, dict) and ("self" in obj):
             _logger.debug(f"dict has recursion: dict['self']={obj['self']}")
+        if callable(obj):
+            _logger.debug(f"call to remote function returned: {obj(1, False, 'hello')}")
         if obj is None:
             break
 

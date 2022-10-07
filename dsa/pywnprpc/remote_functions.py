@@ -11,6 +11,11 @@ class RemoteFunctions:
         self.id2function = dict()
 
     def get_function(self, func_id: int) -> Callable:
-        # TODO: implement
-        _logger.warning(f"This is only stub. func_id={func_id}")
-        return lambda: None
+        if func_id in self.id2function:
+            return self.id2function[func_id]
+
+        def func(*args):
+            return self.make_call(func_id, args)
+
+        self.id2function[func_id] = func
+        return func

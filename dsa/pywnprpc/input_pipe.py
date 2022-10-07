@@ -1,5 +1,6 @@
 import logging
 from typing import List, Dict, Callable
+from .remote_functions import RemoteFunctions
 from .pipe_exception import PipeException
 from .protocol_exception import ProtocolException
 from .types import decompose_type, mask_bytes_size, deserialize_int, deserialize_float
@@ -30,7 +31,7 @@ class InputPipe:
     def set_strings_encoding(self, encoding: str):
         self.strings_encoding = encoding
 
-    def set_remote_functions(self, remote_functions):
+    def set_remote_functions(self, remote_functions: RemoteFunctions):
         self.remote_functions = remote_functions
 
     def read(self):
