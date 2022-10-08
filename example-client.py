@@ -1,20 +1,42 @@
-from dsa.pywnprpc import DuplexCalls
+from dsa.pywnprpc import RPCClient, RemoteError
 import logging
 
 _logger = logging.getLogger(__name__)
 
+NAME = "wnprpc_test"
+
 
 def main():
-    pipe_name = r"\\.\pipe\wnprpc_test"
-    io = open(pipe_name, "r+b")
+    client = RPCClient(NAME)
+    _logger.info(client.active())
 
-    def process_error(err):
-        raise err
-    dc = DuplexCalls(io, io, None, process_error)
+    try:
+        client.root_call("wrong password")
+        raise AssertionError("previous line had to throw RemoteError")
+    except RemoteError as e:
+        # This is ok
+        _logger.error(e)
 
-    print(dc._make_call(0, ("hello", 3.14, None, False)))
+    func_dict = client.root_call("password")
+    _logger.info(func_dict)
 
-    io.close()
+    func_print = func_dict["print"]
+    func_error = func_dict["error"]
+    func_stop = func_dict["stop"]
+
+    _logger.info(func_print(1, False, None, 3.66, {"a": "b"}))
+
+    try:
+        func_error("this error should return as RemoteError")
+        raise AssertionError("previous line had to throw RemoteError")
+    except RemoteError as e:
+        # This is ok
+        _logger.error(e)
+
+    func_stop()
+
+    client.close()
+    _logger.info(client.active())
 
 
 if __name__ == "__main__":

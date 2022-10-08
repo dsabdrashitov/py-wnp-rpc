@@ -26,6 +26,9 @@ class DuplexCalls:
         self.remote_functions = RemoteFunctions(self._make_call)
         self.input_pipe.set_remote_functions(self.remote_functions)
 
+    def call_remote_root(self, *args):
+        return self._make_call(0, args)
+
     def _make_call(self, func_id: int, args: tuple) -> Any:
         self._pcall(self._send_request, (func_id, args))
         return self._pcall(self._receive_reply, tuple())
