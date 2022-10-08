@@ -31,7 +31,7 @@ def main():
     table = {
         "a": 1,
         True: False,
-        3.66: lambda: None,
+        3.66: None,
     }
     table["self"] = table
     output_pipe.write(table)

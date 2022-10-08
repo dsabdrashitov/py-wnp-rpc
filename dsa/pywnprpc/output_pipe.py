@@ -10,7 +10,8 @@ _logger = logging.getLogger(__name__)
 
 class OutputPipe:
 
-    _COUNT_KEY = object()
+    _COUNT_KEY_OBJECT = object()
+    _COUNT_KEY = id(_COUNT_KEY_OBJECT)
 
     def __init__(self, output_stream: BinaryIO):
         self.output_stream = output_stream
@@ -37,7 +38,7 @@ class OutputPipe:
             _logger.error(e)
             raise PipeException()
 
-    def _write(self, obj: Any, stored_objects: Dict[Any, int]) -> None:
+    def _write(self, obj: Any, stored_objects: Dict[int, int]) -> None:
         _logger.debug(f"writing {obj}")
         python_type = type(obj)
         if python_type not in self.class_switch:
@@ -85,11 +86,11 @@ class OutputPipe:
         self._write_raw(serialize_int(length, obj_mask))
         self._write_raw(raw)
 
-    def _write_table(self, obj: dict, stored_objects: Dict[Any, int]) -> None:
-        if obj in stored_objects:
+    def _write_table(self, obj: dict, stored_objects: Dict[int, int]) -> None:
+        if id(obj) in stored_objects:
             self._write_link(obj, stored_objects)
             return
-        stored_objects[obj] = stored_objects[self._COUNT_KEY]
+        stored_objects[id(obj)] = stored_objects[self._COUNT_KEY]
         stored_objects[self._COUNT_KEY] = stored_objects[self._COUNT_KEY] + 1
 
         size = len(obj)
@@ -109,7 +110,7 @@ class OutputPipe:
             raise RuntimeError(err)
 
     def _write_link(self, obj: dict, stored_objects: Dict[Any, int]) -> None:
-        link_id = stored_objects[obj]
+        link_id = stored_objects[id(obj)]
         obj_mask = int_mask(link_id)
         obj_type = compose_type(CLASS_LINK, obj_mask)
         self._write_raw([obj_type, ])
