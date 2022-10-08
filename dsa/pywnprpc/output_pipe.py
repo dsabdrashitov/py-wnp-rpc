@@ -2,6 +2,7 @@ import logging
 from typing import Iterable, BinaryIO, Any, Dict, Callable
 from .pipe_exception import PipeException
 from .local_functions import LocalFunctions
+from .dict_as_a_key import DictAsAKey
 from .types import compose_type, int_mask, serialize_int, serialize_float
 from .types import CLASS_VOID, CLASS_BOOLEAN, CLASS_INT, CLASS_FLOAT, CLASS_STRING, CLASS_TABLE, CLASS_LINK
 from .types import CLASS_FUNCTION
@@ -12,8 +13,7 @@ _logger = logging.getLogger(__name__)
 
 class OutputPipe:
 
-    _COUNT_KEY_OBJECT = object()
-    _COUNT_KEY = id(_COUNT_KEY_OBJECT)
+    _COUNT_KEY = DictAsAKey(dict())
 
     def __init__(self, output_stream: BinaryIO):
         self.output_stream = output_stream
@@ -43,7 +43,7 @@ class OutputPipe:
             _logger.error(e)
             raise PipeException()
 
-    def _write(self, obj: Any, stored_objects: Dict[int, int]) -> None:
+    def _write(self, obj: Any, stored_objects: Dict[DictAsAKey, int]) -> None:
         _logger.debug(f"writing {obj}")
         if callable(obj):
             self._write_function(obj)
@@ -94,11 +94,12 @@ class OutputPipe:
         self._write_raw(serialize_int(length, obj_mask))
         self._write_raw(raw)
 
-    def _write_table(self, obj: dict, stored_objects: Dict[int, int]) -> None:
-        if id(obj) in stored_objects:
-            self._write_link(obj, stored_objects)
+    def _write_table(self, obj: dict, stored_objects: Dict[DictAsAKey, int]) -> None:
+        obj_key = DictAsAKey(obj)
+        if obj_key in stored_objects:
+            self._write_link(obj_key, stored_objects)
             return
-        stored_objects[id(obj)] = stored_objects[self._COUNT_KEY]
+        stored_objects[obj_key] = stored_objects[self._COUNT_KEY]
         stored_objects[self._COUNT_KEY] = stored_objects[self._COUNT_KEY] + 1
 
         size = len(obj)
@@ -108,7 +109,11 @@ class OutputPipe:
         self._write_raw(serialize_int(size, obj_mask))
         done = 0
         for k, v in obj.items():
-            self._write(k, stored_objects)
+            if isinstance(k, DictAsAKey):
+                out_k = k.get_dict()
+            else:
+                out_k = k
+            self._write(out_k, stored_objects)
             self._write(v, stored_objects)
             done += 1
 
@@ -117,8 +122,8 @@ class OutputPipe:
             _logger.error(err)
             raise RuntimeError(err)
 
-    def _write_link(self, obj: dict, stored_objects: Dict[Any, int]) -> None:
-        link_id = stored_objects[id(obj)]
+    def _write_link(self, obj_key: DictAsAKey, stored_objects: Dict[DictAsAKey, int]) -> None:
+        link_id = stored_objects[obj_key]
         obj_mask = int_mask(link_id)
         obj_type = compose_type(CLASS_LINK, obj_mask)
         self._write_raw([obj_type, ])

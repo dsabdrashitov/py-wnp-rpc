@@ -3,6 +3,7 @@ from typing import List, Dict, Callable
 from .remote_functions import RemoteFunctions
 from .pipe_exception import PipeException
 from .protocol_exception import ProtocolException
+from .dict_as_a_key import DictAsAKey
 from .types import decompose_type, mask_bytes_size, deserialize_int, deserialize_float
 from .types import CLASS_VOID, CLASS_BOOLEAN, CLASS_INT, CLASS_FLOAT, CLASS_STRING, CLASS_TABLE, CLASS_LINK
 from .types import CLASS_FUNCTION
@@ -104,7 +105,8 @@ class InputPipe:
         for _ in range(size):
             key = self._read(stored_objects)
             val = self._read(stored_objects)
-            # TODO: there is an issue with dicts can't be keys of dict
+            if isinstance(key, dict):
+                key = DictAsAKey(key)
             result[key] = val
         return result
 

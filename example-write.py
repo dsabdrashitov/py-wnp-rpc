@@ -1,4 +1,4 @@
-from dsa.pywnprpc import OutputPipe, LocalFunctions
+from dsa.pywnprpc import OutputPipe, LocalFunctions, DictAsAKey
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -36,6 +36,10 @@ def main():
         (lambda: None): "some value"
     }
     table["self"] = table
+    output_pipe.write(table)
+
+    # dict as a key
+    table[DictAsAKey(table)] = main
     output_pipe.write(table)
 
     # None
