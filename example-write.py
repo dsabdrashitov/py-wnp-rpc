@@ -27,6 +27,15 @@ def main():
     # strings
     output_pipe.write("Hell\no, Lua!")
 
+    # dicts
+    table = {
+        "a": 1,
+        True: False,
+        3.66: lambda: None,
+    }
+    table["self"] = table
+    output_pipe.write(table)
+
     # None
     output_pipe.write(None)
 
