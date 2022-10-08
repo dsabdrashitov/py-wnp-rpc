@@ -14,7 +14,9 @@ class LocalFunctions:
         self.id2function[0] = root_function
         self.registered = 0
 
-    def get_function(self, func_id: int) -> Callable:
+    def get_function(self, func_id: int) -> Optional[Callable]:
+        if func_id not in self.id2function:
+            return None
         return self.id2function[func_id]
 
     def get_id(self, func: Callable) -> int:
