@@ -1,8 +1,10 @@
 import logging
-from typing import Iterable, BinaryIO, Any, Dict
+from typing import Iterable, BinaryIO, Any, Dict, Callable
 from .pipe_exception import PipeException
+from .local_functions import LocalFunctions
 from .types import compose_type, int_mask, serialize_int, serialize_float
 from .types import CLASS_VOID, CLASS_BOOLEAN, CLASS_INT, CLASS_FLOAT, CLASS_STRING, CLASS_TABLE, CLASS_LINK
+from .types import CLASS_FUNCTION
 from .types import MASK_VOID, MASK_BOOL_TRUE, MASK_BOOL_FALSE, MASK_FLOAT64
 
 _logger = logging.getLogger(__name__)
@@ -26,8 +28,11 @@ class OutputPipe:
             dict: self._write_table,
         }
 
-    def set_strings_encoding(self, encoding: str):
+    def set_strings_encoding(self, encoding: str) -> None:
         self.strings_encoding = encoding
+
+    def set_local_functions(self, local_functions: LocalFunctions) -> None:
+        self.local_functions = local_functions
 
     def write(self, obj: Any) -> None:
         try:
@@ -40,6 +45,9 @@ class OutputPipe:
 
     def _write(self, obj: Any, stored_objects: Dict[int, int]) -> None:
         _logger.debug(f"writing {obj}")
+        if callable(obj):
+            self._write_function(obj)
+            return
         python_type = type(obj)
         if python_type not in self.class_switch:
             err = f"type {python_type} not supported"
@@ -115,3 +123,14 @@ class OutputPipe:
         obj_type = compose_type(CLASS_LINK, obj_mask)
         self._write_raw([obj_type, ])
         self._write_raw(serialize_int(link_id, obj_mask))
+
+    def _write_function(self, obj: Callable) -> None:
+        if self.local_functions is None:
+            err = "can't send function without ingoing calls endpoint"
+            _logger.error(err)
+            raise RuntimeError(err)
+        func_id = self.local_functions.get_id(obj)
+        obj_mask = int_mask(func_id)
+        obj_type = compose_type(CLASS_FUNCTION, obj_mask)
+        self._write_raw([obj_type, ])
+        self._write_raw(serialize_int(func_id, obj_mask))

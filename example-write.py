@@ -1,4 +1,4 @@
-from dsa.pywnprpc import OutputPipe
+from dsa.pywnprpc import OutputPipe, LocalFunctions
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -8,6 +8,7 @@ def main():
     pipe_name = r"\\.\pipe\wnprpc_test"
     io = open(pipe_name, "r+b")
     output_pipe = OutputPipe(io)
+    output_pipe.set_local_functions(LocalFunctions())
 
     # booleans
     output_pipe.write(True)
@@ -27,11 +28,12 @@ def main():
     # strings
     output_pipe.write("Hell\no, Lua!")
 
-    # dicts
+    # dicts and functions
     table = {
         "a": 1,
         True: False,
-        3.66: None,
+        3.66: lambda: None,
+        (lambda: None): "some value"
     }
     table["self"] = table
     output_pipe.write(table)
