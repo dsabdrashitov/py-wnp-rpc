@@ -104,6 +104,7 @@ class InputPipe:
         for _ in range(size):
             key = self._read(stored_objects)
             val = self._read(stored_objects)
+            # TODO: there is an issue with dicts can't be keys of dict
             result[key] = val
         return result
 
