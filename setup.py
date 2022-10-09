@@ -16,7 +16,7 @@ def load_requirements():
 
 setuptools.setup(
     name="dsa-pywnprpc",
-    version="0.0.0",
+    version="1.0.0",
     packages=setuptools.find_namespace_packages(include=["dsa.*", ]),
     install_requires=load_requirements(),
 )

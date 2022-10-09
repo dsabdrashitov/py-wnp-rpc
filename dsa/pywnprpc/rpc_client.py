@@ -12,7 +12,7 @@ class RPCClient:
     PIPE_NAME_FORMAT = "\\\\.\\pipe\\%s"
 
     def __init__(self, name: str):
-        pipe_name = self._pipe_address(name)
+        pipe_name = self.pipe_address(name)
         self.io = open(pipe_name, "r+b")
         self.calls = DuplexCalls(self.io, self.io, None, self._process_error)
 
@@ -33,5 +33,5 @@ class RPCClient:
         raise err
 
     @staticmethod
-    def _pipe_address(name: str) -> str:
+    def pipe_address(name: str) -> str:
         return RPCClient.PIPE_NAME_FORMAT % name
