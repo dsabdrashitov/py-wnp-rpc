@@ -44,7 +44,6 @@ class OutputPipe:
             raise PipeException()
 
     def _write(self, obj: Any, stored_objects: Dict[DictAsAKey, int]) -> None:
-        _logger.debug(f"writing {obj}")
         if callable(obj):
             self._write_function(obj)
             return
@@ -59,7 +58,6 @@ class OutputPipe:
 
     def _write_raw(self, sequence_of_bytes: Iterable[int]) -> None:
         block = bytes(sequence_of_bytes)
-        _logger.debug(f"write block of {len(block)} bytes")
         self.output_stream.write(block)
 
     def _write_void(self, _0, _1) -> None:

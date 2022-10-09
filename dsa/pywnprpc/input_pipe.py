@@ -78,28 +78,24 @@ class InputPipe:
 
     def _read_int(self, mask: int, _) -> int:
         bytes_size = mask_bytes_size(mask)
-        _logger.debug(f"reading {bytes_size} bytes of int")
         bytes_arr = self._read_raw(bytes_size)
         result = deserialize_int(bytes_arr)
         return result
 
     def _read_float(self, mask: int, _) -> float:
         bytes_size = mask_bytes_size(mask)
-        _logger.debug(f"reading {bytes_size} bytes of float")
         bytes_arr = self._read_raw(bytes_size)
         result = deserialize_float(bytes_arr, mask)
         return result
 
     def _read_string(self, mask: int, _) -> str:
         length = self._read_int(mask, None)
-        _logger.debug(f"length of string being read is {length}")
         bytes_arr = self._read_raw(length)
         result = bytes_arr.decode(self.strings_encoding)
         return result
 
     def _read_table(self, mask: int, stored_objects: List[Dict]) -> Dict:
         size = self._read_int(mask, None)
-        _logger.debug(f"reading dict with {size} items")
         result = dict()
         stored_objects.append(result)
         for _ in range(size):
