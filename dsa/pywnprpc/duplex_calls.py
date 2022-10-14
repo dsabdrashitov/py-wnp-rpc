@@ -26,6 +26,10 @@ class DuplexCalls:
         self.remote_functions = RemoteFunctions(self._make_call)
         self.input_pipe.set_remote_functions(self.remote_functions)
 
+    def set_strings_encoding(self, encoding: str):
+        self.input_pipe.set_strings_encoding(encoding)
+        self.output_pipe.set_strings_encoding(encoding)
+
     def call_remote_root(self, *args):
         return self._make_call(0, args)
 

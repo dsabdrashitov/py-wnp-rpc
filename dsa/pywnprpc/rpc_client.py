@@ -16,6 +16,10 @@ class RPCClient:
         self.io = open(pipe_name, "r+b")
         self.calls = DuplexCalls(self.io, self.io, None, self._process_error)
 
+    def set_strings_encoding(self, encoding: str):
+        if self.calls is not None:
+            self.calls.set_strings_encoding(encoding)
+
     def active(self) -> bool:
         return self.io is not None
 
