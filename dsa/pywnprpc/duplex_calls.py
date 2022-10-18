@@ -96,9 +96,9 @@ class DuplexCalls:
 
     def _send_results(self, result: Union[Any, tuple]) -> None:
         if result is None:
-            result = []
+            result = tuple()
         if not isinstance(result, tuple):
-            result = [result, ]
+            result = (result, )
         self.output_pipe.write(-len(result) - 1)
         for i in range(len(result)):
             self.output_pipe.write(result[i])
